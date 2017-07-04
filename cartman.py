@@ -2,5 +2,10 @@
 
 import os
 import sys
+import urllib
 
-print ("Hello people?")
+print ("Test3")
+
+query = "test3"
+response = urllib.urlopen('http://search.yahoo.com/search?p=%s' % query).read()
+print response
