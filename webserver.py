@@ -56,7 +56,30 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        query = "test3"
+        query = self.path
+        prefix = '/search?p='
+        if str(query).startswith(prefix):
+            query = query[len(prefix):-1]
+            client_cmd_output = urllib.unquote(query).decode('utf8')
+            query = query.replace('%0D%0A', '')
+            if len(query) > 20:
+                query = query[:20]
+            print client_cmd_output
+            print query
+
+
+        # tmp = query.split('?')
+        # if len(tmp) > 1:
+        #     param1 = str(tmp[1]).split('=')
+        #     if len(param1) > 1:
+        #         query = param1[1]
+        #         client_cmd_output = urllib.unquote(query).decode('utf8')
+        #         print client_cmd_output
+        #         print query
+        #         query = query.replace('%0D%0A', '')
+        #         if len(query) > 20:
+        #             query = query[:20]
+
         response = urllib.urlopen('http://search.yahoo.com/search?p=%s' % query).read()
 
         soup = bs4.BeautifulSoup(response)
@@ -101,7 +124,7 @@ class S(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=S, port=80):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print 'Starting httpd...'
+    print ('Starting httpd...')
     httpd.serve_forever()
 
 
