@@ -20,6 +20,7 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        new_cmd = ''
         query = self.path
         prefix = '/search?p='
         if str(query).startswith(prefix):
